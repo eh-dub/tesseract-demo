@@ -1,0 +1,7 @@
+name: tesseract
+channels:
+  - defaults
+dependencies:
+  - tesseract
+  - av
+prefix: /usr/local/anaconda3/envs/tesseract
