@@ -4,4 +4,6 @@ channels:
 dependencies:
   - tesseract
   - av
+  - fastai
+  - pillow=8.2.0
 prefix: /usr/local/anaconda3/envs/tesseract
