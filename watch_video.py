@@ -1,7 +1,7 @@
 #!/usr/bin/python3
-
+import numpy as np
 import av
-from PIL import Image, ImageDraw, ImageShow
+from PIL import Image, ImageDraw, ImageShow, ImageFilter
 import pathlib
 from extractROIsFromVideo import extractROIsFromVideo
 
@@ -21,6 +21,26 @@ def extractROIsAtTimes(container, roi, FPS, times):
         roisByTimes.append(extractROIsFromVideo(container, roi, FPS, t-1, t+1))
     return [r for rois in roisByTimes for r in rois] # https://stackabuse.com/python-how-to-flatten-list-of-lists/
 
+def computeAvgImg(buffer):
+    if len(buffer) == 0:
+        exit(1)
+
+    w,h = buffer[0].size
+    avg = np.zeros((h,w), np.float)
+    for i in buffer:
+        i = i.convert('L')
+        i = np.array(i, dtype=np.float)
+        avg = avg + i/float(len(buffer))
+
+    # Round values in array and cast as 8-bit integer
+    avg = np.array(np.round(avg),dtype=np.uint8)
+    # avg = avg.filter(ImageFilter.CONTOUR)
+    finalImg = Image.fromarray(avg, 'L')
+    finalImg = finalImg.filter(ImageFilter.CONTOUR)
+    finalImg.info["name"] =f'.png' 
+    # finalImg.info["name"] =f'{buffer[0].info["timestamp"]}-{buffer[-1].info["timestamp"]}.png' 
+    return finalImg
+
 video_path = pathlib.PurePath("./huskerrs_clip.mkv")
 container = av.open(str(video_path))
 # container.streams.video[0].thread_type = 'AUTO'
@@ -28,11 +48,22 @@ FPS = float(container.streams.video[0].average_rate)
 # print(f"FPS: {FPS}")
 
 bboxes = [(1212,30,1247,50), (1152, 30, 1187, 50), (1000,0,1280,100)] # right-eye, left-eye, both: (0,0,1280,720)
-[rightEye, leftEye, both] = extractROIsFromVideo(container, bboxes, FPS, 797, 1000)
-for roi in rightEye:
-	roi.save(f'./kill-count-rois/right/{roi.info["timestamp"]}.png')
-for roi in leftEye:
-	roi.save(f'./kill-count-rois/left/{roi.info["timestamp"]}.png')
-for roi in both:
-	roi.save(f'./kill-count-rois/both/{roi.info["timestamp"]}.png')
+[rightEye, leftEye, both] = extractROIsFromVideo(container, bboxes, FPS, 0, 3)
+
+buffer = []
+for (i, roi) in enumerate(rightEye):
+    if i % FPS == 0 and i != 0:
+        buffer.append(roi)
+        avg = computeAvgImg(buffer)
+        avg.save(f'./kill-count-rois/right/{i}{avg.info["name"]}')
+        avg.show()
+        buffer = [] 
+    else:
+        buffer.append(roi)
+        
+# for roi in leftEye:
+# 	roi.save(f'./kill-count-rois/left/{roi.info["timestamp"]}.png')
+# for roi in both:
+# 	roi.save(f'./kill-count-rois/both/{roi.info["timestamp"]}.png')
 exit(0)
+
