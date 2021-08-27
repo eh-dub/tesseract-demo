@@ -27,8 +27,8 @@ container = av.open(str(video_path))
 FPS = float(container.streams.video[0].average_rate)
 # print(f"FPS: {FPS}")
 
-bboxes = [(1215,30,1235,50), (1150, 30, 1170, 50), (1000,0,1280,200)] # right-eye, left-eye, both: (0,0,1280,720)
-[rightEye, leftEye, both] = extractROIsFromVideo(container, bboxes, FPS, 797, 0)
+bboxes = [(1212,30,1247,50), (1151, 30, 1187, 50), (1000,0,1280,100)] # right-eye, left-eye, both: (0,0,1280,720)
+[rightEye, leftEye, both] = extractROIsFromVideo(container, bboxes, FPS, 797, 1000)
 for roi in rightEye:
 	roi.save(f'./kill-count-rois/right/{roi.info["timestamp"]}.png')
 for roi in leftEye:
