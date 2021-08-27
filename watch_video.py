@@ -25,10 +25,14 @@ video_path = pathlib.PurePath("./huskerrs_clip.mkv")
 container = av.open(str(video_path))
 # container.streams.video[0].thread_type = 'AUTO'
 FPS = float(container.streams.video[0].average_rate)
-print(f"FPS: {FPS}")
-[rois] = extractROIsFromVideo(container, [(1215,30,1230,50)], FPS, 0, 10)
-for r in rois:
-    # draw = ImageDraw.Draw(r)
-    # drawGrid(draw, 1280, 720)
-    r.save(f'./kill-count-frames/{r.info["timestamp"]}.png')
+# print(f"FPS: {FPS}")
+
+bboxes = [(1215,30,1235,50), (1150, 30, 1170, 50), (1000,0,1280,200)] # right-eye, left-eye, both: (0,0,1280,720)
+[rightEye, leftEye, both] = extractROIsFromVideo(container, bboxes, FPS, 797, 0)
+for roi in rightEye:
+	roi.save(f'./kill-count-rois/right/{roi.info["timestamp"]}.png')
+for roi in leftEye:
+	roi.save(f'./kill-count-rois/left/{roi.info["timestamp"]}.png')
+for roi in both:
+	roi.save(f'./kill-count-rois/both/{roi.info["timestamp"]}.png')
 exit(0)
