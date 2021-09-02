@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import numpy as np
 import av
-from PIL import Image, ImageDraw, ImageShow, ImageFilter
+from PIL import Image, ImageDraw, ImageShow, ImageFilter, ImageOps
 import pathlib
 from extractROIsFromVideo import extractROIsFromVideo
 
@@ -26,6 +26,9 @@ def computeAvgImg(buffer):
         exit(1)
 
     w,h = buffer[0].size
+
+    # rewrite this in a functional style. reduce using np.zeros as the initial accumulator value
+    # iterate over a list of morphisms Could make a good blog post.
     avg = np.zeros((h,w), np.float)
     for i in buffer:
         i = i.convert('L')
@@ -36,7 +39,9 @@ def computeAvgImg(buffer):
     avg = np.array(np.round(avg),dtype=np.uint8)
     # avg = avg.filter(ImageFilter.CONTOUR)
     finalImg = Image.fromarray(avg, 'L')
-    finalImg = finalImg.filter(ImageFilter.CONTOUR)
+    finalImg = ImageOps.invert(finalImg)
+    finalImg = finalImg.point(lambda i: 0 if i < 150 else 255)
+    # finalImg = finalImg.filter(ImageFilter.CONTOUR)
     finalImg.info["name"] =f'.png' 
     # finalImg.info["name"] =f'{buffer[0].info["timestamp"]}-{buffer[-1].info["timestamp"]}.png' 
     return finalImg
@@ -47,16 +52,16 @@ container = av.open(str(video_path))
 FPS = float(container.streams.video[0].average_rate)
 # print(f"FPS: {FPS}")
 
-bboxes = [(1212,30,1247,50), (1152, 30, 1187, 50), (1000,0,1280,100)] # right-eye, left-eye, both: (0,0,1280,720)
-[rightEye, leftEye, both] = extractROIsFromVideo(container, bboxes, FPS, 0, 3)
+bboxes = [(1212,30,1228,50), (1152, 30, 1187, 50), (1000,0,1280,100)] # right-eye, left-eye, both: (0,0,1280,720)
+[rightEye, leftEye, both] = extractROIsFromVideo(container, bboxes, FPS, 0, 300)
 
 buffer = []
 for (i, roi) in enumerate(rightEye):
-    if i % FPS == 0 and i != 0:
+    if i % (2*FPS) == 0 and i != 0:
         buffer.append(roi)
         avg = computeAvgImg(buffer)
         avg.save(f'./kill-count-rois/right/{i}{avg.info["name"]}')
-        avg.show()
+        # avg.show()
         buffer = [] 
     else:
         buffer.append(roi)
