@@ -1,5 +1,6 @@
-FROM alpine:3.14
+FROM python:3.9-slim
 
-CMD curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN pip install --user poetry
+ENV PATH="${PATH}:/root/.local/bin"
 
 WORKDIR /tesseract-demo
