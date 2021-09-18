@@ -42,8 +42,8 @@ def computeAvgImg(buffer):
     finalImg = ImageOps.invert(finalImg)
     finalImg = finalImg.point(lambda i: 0 if i < 150 else 255)
     # finalImg = finalImg.filter(ImageFilter.CONTOUR)
-    finalImg.info["name"] =f'.png' 
-    # finalImg.info["name"] =f'{buffer[0].info["timestamp"]}-{buffer[-1].info["timestamp"]}.png' 
+    # finalImg.info["name"] =f'.png' 
+    finalImg.info["name"] =f'{buffer[0].info["timestamp"]}-{buffer[-1].info["timestamp"]}.png' 
     return finalImg
 
 video_path = pathlib.PurePath("./huskerrs_clip.mkv")
