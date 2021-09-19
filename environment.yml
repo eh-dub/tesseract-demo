@@ -1,6 +1,8 @@
 name: tesseract
 channels:
   - defaults
+  - fastai
+  - conda-forge
 dependencies:
   - tesseract
   - av
